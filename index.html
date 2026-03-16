@@ -3,40 +3,95 @@
 
 <head>
 
-<title>CCPC Team Builder</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Mixed Team Builder</title>
 
 <style>
 
+*{
+box-sizing:border-box;
+}
+
 body{
-font-family:Arial;
-padding:40px;
+font-family:Arial, sans-serif;
+margin:0;
 background:#f4f6f8;
+color:#333;
+}
+
+.container{
+max-width:650px;
+margin:auto;
+padding:20px;
+}
+
+h1{
+text-align:center;
+font-size:24px;
+margin-bottom:20px;
+}
+
+.section{
+background:white;
+padding:16px;
+border-radius:10px;
+margin-bottom:16px;
+box-shadow:0 2px 6px rgba(0,0,0,0.08);
+}
+
+.label{
+font-weight:bold;
+margin-bottom:6px;
+display:block;
 }
 
 select{
-width:360px;
-padding:6px;
-margin-bottom:12px;
+width:100%;
+padding:12px;
+font-size:16px;
+border-radius:8px;
+border:1px solid #ccc;
+margin-bottom:14px;
 }
 
 option.invalid{
 color:red;
 }
 
-h2{
-margin-bottom:20px;
+.results{
+position:sticky;
+bottom:0;
+background:white;
+padding:16px;
+border-top:1px solid #ddd;
+box-shadow:0 -2px 8px rgba(0,0,0,0.1);
 }
 
-.result{
-margin-top:20px;
+.total{
 font-size:22px;
 font-weight:bold;
+}
+
+.avg{
+color:#666;
+margin-top:4px;
 }
 
 .warning{
 color:red;
 font-weight:bold;
-margin-top:10px;
+margin-top:8px;
+}
+
+@media (min-width:700px){
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:16px;
+}
+
 }
 
 </style>
@@ -45,29 +100,49 @@ margin-top:10px;
 
 <body>
 
-<h2>CCPC Team Builder</h2>
+<div class="container">
 
-Male 1<br>
-<select id="male1"></select><br>
+<h1>Mixed Doubles Team Builder</h1>
 
-Male 2<br>
-<select id="male2"></select><br>
+<div class="grid">
 
-Female 1<br>
-<select id="female1"></select><br>
+<div class="section">
 
-Female 2<br>
-<select id="female2"></select><br>
+<div class="label">Male Player 1</div>
+<select id="male1"></select>
 
-<div class="result">
+<div class="label">Male Player 2</div>
+<select id="male2"></select>
+
+</div>
+
+<div class="section">
+
+<div class="label">Female Player 1</div>
+<select id="female1"></select>
+
+<div class="label">Female Player 2</div>
+<select id="female2"></select>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="results">
+
+<div class="total">
 Total DUPR: <span id="total">0</span>
 </div>
 
-<div>
+<div class="avg">
 Average DUPR: <span id="avg">0</span>
 </div>
 
 <div id="warning" class="warning"></div>
+
+</div>
 
 <script>
 
@@ -153,16 +228,20 @@ let females=[]
 
 function parseCSV(){
 
-const rows=csvData.trim().split("\n").slice(1)
+const rows = csvData.trim().split("\n").slice(1)
 
 rows.forEach(r=>{
 
-const c=r.split(",")
+const c = r.split(",")
+
+let duprRaw = c[4].trim()
+
+let dupr = (duprRaw === "NR" || duprRaw === "") ? 3.0 : parseFloat(duprRaw)
 
 const player={
 name:c[0],
 sex:c[1],
-dupr:parseFloat(c[4])
+dupr:dupr
 }
 
 if(player.sex==="Male"){
@@ -202,7 +281,7 @@ list.forEach(p=>{
 let option=document.createElement("option")
 
 option.value=p.dupr
-option.text=p.name+" ("+p.dupr+")"
+option.text=p.name+" ("+p.dupr.toFixed(2)+")"
 option.dataset.name=p.name
 
 select.appendChild(option)
@@ -229,19 +308,19 @@ female1:getPlayer("female1"),
 female2:getPlayer("female2")
 }
 
-validatePair("male1","male2",males,players)
-validatePair("male2","male1",males,players)
+validatePair("male1","male2",players)
+validatePair("male2","male1",players)
 
-validatePair("female1","female2",females,players)
-validatePair("female2","female1",females,players)
+validatePair("female1","female2",players)
+validatePair("female2","female1",players)
 
 validateTotal(players)
 
 }
 
-function validatePair(currentId,otherId,list,players){
+function validatePair(currentId,otherId,players){
 
-const current=getPlayer(currentId)
+const current=players[currentId]
 const otherSelect=document.getElementById(otherId)
 
 Array.from(otherSelect.options).forEach(opt=>{
@@ -271,15 +350,15 @@ opt.classList.add("invalid")
 
 function validateTotal(players){
 
-let currentTotal=0
+let total=0
 
 Object.values(players).forEach(p=>{
-if(p) currentTotal+=p.dupr
+if(p) total+=p.dupr
 })
 
-const selects=["male1","male2","female1","female2"]
+const ids=["male1","male2","female1","female2"]
 
-selects.forEach(id=>{
+ids.forEach(id=>{
 
 const select=document.getElementById(id)
 
@@ -289,11 +368,11 @@ if(!opt.value) return
 
 const dupr=parseFloat(opt.value)
 
-let hypothetical=currentTotal
+let hypothetical=total
 
-const player=getPlayer(id)
+const current=getPlayer(id)
 
-if(player) hypothetical-=player.dupr
+if(current) hypothetical-=current.dupr
 
 hypothetical+=dupr
 
@@ -335,8 +414,8 @@ getPlayer("female2")
 
 let total=players.reduce((s,p)=>s+(p?p.dupr:0),0)
 
-document.getElementById("total").innerText=total.toFixed(3)
-document.getElementById("avg").innerText=(total/4).toFixed(3)
+document.getElementById("total").innerText=total.toFixed(2)
+document.getElementById("avg").innerText=(total/4).toFixed(2)
 
 if(total>12){
 document.getElementById("warning").innerText="Team exceeds DUPR 12 limit"
