@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>CCPC Team Builder</title>
+
+<style>
+
+body{
+font-family:Arial;
+padding:40px;
+background:#f4f6f8;
+}
+
+select{
+width:360px;
+padding:6px;
+margin-bottom:12px;
+}
+
+option.invalid{
+color:red;
+}
+
+h2{
+margin-bottom:20px;
+}
+
+.result{
+margin-top:20px;
+font-size:22px;
+font-weight:bold;
+}
+
+.warning{
+color:red;
+font-weight:bold;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>CCPC Team Builder</h2>
+
+Male 1<br>
+<select id="male1"></select><br>
+
+Male 2<br>
+<select id="male2"></select><br>
+
+Female 1<br>
+<select id="female1"></select><br>
+
+Female 2<br>
+<select id="female2"></select><br>
+
+<div class="result">
+Total DUPR: <span id="total">0</span>
+</div>
+
+<div>
+Average DUPR: <span id="avg">0</span>
+</div>
+
+<div id="warning" class="warning"></div>
+
+<script>
+
+const csvData = `
+Name,Sex,Age,Skill Level,DUPR
+Karl Laurenz Arabani,Male,39 Down,Advanced,3.919
+Jon Jelson L. Masongsong,Male,39 Down,Advanced,3.868
+Raymond Garque,Male,39 Down,Advanced,3.658
+Krizma Mae Garque,Female,39 Down,High Intermediate,3.617
+Jelson Masongsong,Male,40 up,Advanced,3.454
+Jonathan Neria,Male,39 Down,High Intermediate,3.417
+Medonito Martinez Magaling,Male,40 up,Advanced,3.375
+Harold Flores,Male,39 Down,Advanced,3.357
+Leo A Romero,Male,40 up,High Intermediate,3.273
+Bernie Apacible,Male,40 up,Advanced,3.265
+Paul Fiedacan,Male,39 Down,Advanced,3.248
+Glydel Abena,Female,40 up,High Intermediate,3.246
+Carl Nikko Baldonado,Male,39 Down,Advanced,3.218
+Mackie Martinez,Male,39 Down,Advanced,3.209
+Mel Atienza,Male,39 Down,Advanced,3.202
+Kenneth,Male,39 Down,Advanced,3.163
+Tristan De Guzman,Male,39 Down,Advanced,3.152
+Miggo Mejico,Male,39 Down,Advanced,3.145
+Zyries Atienza,Female,40 up,Low Intermediate,3.14
+Darrel Marquez,Male,39 Down,Advanced,3.131
+Joseph Caraig,Male,40 up,Advanced,3.093
+Harvey Ecker A. Zamora,Male,39 Down,Advanced,3.078
+Mhars,Female,40 up,High Intermediate,3.078
+Yael Zamora,Female,39 Down,High Intermediate,3.065
+Reynaldo Munsayac,Male,39 Down,High Intermediate,3.054
+Arnel Vega,Male,40 up,Advanced,3.048
+Cherry Cataquis,Female,40 up,High Intermediate,3.041
+LJ Suzara,Male,39 Down,Advanced,3.03
+Ton Quinton,Male,39 Down,Advanced,3.009
+Ellen Suzara,Female,40 up,Low Intermediate,2.994
+Dewfall Abas,Male,40 up,Advanced,2.965
+Camile,Female,39 Down,Low Intermediate,2.952
+Carmelo Pena,Male,40 up,Advanced,2.952
+Rodalyn Tanyag,Female,40 up,Low Intermediate,2.937
+Annaliza Gubi,Female,40 up,High Intermediate,2.933
+Daisy Tiquia,Female,40 up,High Intermediate,2.838
+Mazut Lopez,Female,40 up,High Intermediate,2.802
+Gloria Goco-De Guzman,Female,40 up,Low Intermediate,2.788
+Julie Ann Cuyo,Female,39 Down,High Intermediate,2.78
+Jan Cyrus Mendoza,Male,39 Down,High Intermediate,2.758
+Angelito Tiquia,Male,40 up,High Intermediate,2.724
+Ellen De Leon Fortunato,Female,40 up,Low Intermediate,2.7
+Ignacio Bim A.,Male,40 up,High Intermediate,2.682
+Loveville Ilagan Benter,Female,40 up,Low Intermediate,2.66
+Princess B.,Female,39 Down,Low Intermediate,2.659
+Donata Caraig,Female,40 up,Low Intermediate,2.653
+Wilnor Perez,Female,40 up,Low Intermediate,2.632
+Ki Ng Pot,Male,39 Down,High Intermediate,2.613
+Larry Suzara,Female,40 up,Low Intermediate,2.61
+Ronald Cabral,Male,40 up,High Intermediate,2.602
+Choy Eclavea,Male,40 up,High Intermediate,2.597
+Jane S Red,Female,40 up,Low Intermediate,2.585
+Danix,Female,39 Down,Low Intermediate,2.583
+Raymond Dugan,Male,40 up,Low Intermediate,2.566
+Boyet Basilan,Male,40 up,Low Intermediate,2.547
+Teyob Nalisab,Male,40 up,High Intermediate,2.547
+EC Masaga,Female,40 up,Low Intermediate,2.54
+Marah Cristine A. Bautista,Female,39 Down,Low Intermediate,2.51
+Glen Nizal,Male,40 up,High Intermediate,2.474
+Nante Luzon,Male,40 up,Low Intermediate,2.459
+Rona Leachon,Female,40 up,Low Intermediate,2.428
+Arlene Espiritu,Female,40 up,Low Intermediate,2.418
+Owen,Male,39 Down,High Intermediate,2.39
+Caey Cabral,Female,40 up,Low Intermediate,2.385
+Lara,Female,39 Down,Low Intermediate,2.377
+Roy Albo,Male,39 Down,High Intermediate,2.299
+Atty CA Jojo Perez,Male,40 up,High Intermediate,2.273
+Jojo Tanyag,Male,40 up,Low Intermediate,2.268
+Danika Natanauan-Munsayac,Female,39 Down,Low Intermediate,2.212
+Marian Albo,Female,40 up,Low Intermediate,2.209
+Kiana,Female,39 Down,Low Intermediate,2.065
+Elmer Villas,Male,40 up,Low Intermediate,2
+Marilou Madrigal,Female,40 up,Low Intermediate,2
+`
+
+let males=[]
+let females=[]
+
+function parseCSV(){
+
+const rows=csvData.trim().split("\n").slice(1)
+
+rows.forEach(r=>{
+
+const c=r.split(",")
+
+const player={
+name:c[0],
+sex:c[1],
+dupr:parseFloat(c[4])
+}
+
+if(player.sex==="Male"){
+males.push(player)
+}else{
+females.push(player)
+}
+
+})
+
+render()
+
+}
+
+function render(){
+
+populate("male1",males)
+populate("male2",males)
+populate("female1",females)
+populate("female2",females)
+
+}
+
+function populate(id,list){
+
+const select=document.getElementById(id)
+
+select.innerHTML=""
+
+let blank=document.createElement("option")
+blank.value=""
+blank.text="Select Player"
+select.appendChild(blank)
+
+list.forEach(p=>{
+
+let option=document.createElement("option")
+
+option.value=p.dupr
+option.text=p.name+" ("+p.dupr+")"
+option.dataset.name=p.name
+
+select.appendChild(option)
+
+})
+
+select.addEventListener("change",update)
+
+}
+
+function update(){
+
+validateOptions()
+compute()
+
+}
+
+function validateOptions(){
+
+const players={
+male1:getPlayer("male1"),
+male2:getPlayer("male2"),
+female1:getPlayer("female1"),
+female2:getPlayer("female2")
+}
+
+validatePair("male1","male2",males,players)
+validatePair("male2","male1",males,players)
+
+validatePair("female1","female2",females,players)
+validatePair("female2","female1",females,players)
+
+validateTotal(players)
+
+}
+
+function validatePair(currentId,otherId,list,players){
+
+const current=getPlayer(currentId)
+const otherSelect=document.getElementById(otherId)
+
+Array.from(otherSelect.options).forEach(opt=>{
+
+opt.classList.remove("invalid")
+opt.disabled=false
+
+if(!opt.value) return
+
+const name=opt.dataset.name
+const dupr=parseFloat(opt.value)
+
+if(current && name===current.name){
+opt.disabled=true
+opt.classList.add("invalid")
+return
+}
+
+if(current && current.dupr+dupr>8){
+opt.disabled=true
+opt.classList.add("invalid")
+}
+
+})
+
+}
+
+function validateTotal(players){
+
+let currentTotal=0
+
+Object.values(players).forEach(p=>{
+if(p) currentTotal+=p.dupr
+})
+
+const selects=["male1","male2","female1","female2"]
+
+selects.forEach(id=>{
+
+const select=document.getElementById(id)
+
+Array.from(select.options).forEach(opt=>{
+
+if(!opt.value) return
+
+const dupr=parseFloat(opt.value)
+
+let hypothetical=currentTotal
+
+const player=getPlayer(id)
+
+if(player) hypothetical-=player.dupr
+
+hypothetical+=dupr
+
+if(hypothetical>12){
+
+opt.disabled=true
+opt.classList.add("invalid")
+
+}
+
+})
+
+})
+
+}
+
+function getPlayer(id){
+
+const select=document.getElementById(id)
+const option=select.options[select.selectedIndex]
+
+if(!option || !option.value) return null
+
+return {
+name:option.dataset.name,
+dupr:parseFloat(option.value)
+}
+
+}
+
+function compute(){
+
+let players=[
+getPlayer("male1"),
+getPlayer("male2"),
+getPlayer("female1"),
+getPlayer("female2")
+]
+
+let total=players.reduce((s,p)=>s+(p?p.dupr:0),0)
+
+document.getElementById("total").innerText=total.toFixed(3)
+document.getElementById("avg").innerText=(total/4).toFixed(3)
+
+if(total>12){
+document.getElementById("warning").innerText="Team exceeds DUPR 12 limit"
+}else{
+document.getElementById("warning").innerText=""
+}
+
+}
+
+parseCSV()
+
+</script>
+
+</body>
+</html>
